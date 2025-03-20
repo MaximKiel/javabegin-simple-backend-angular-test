@@ -29,6 +29,7 @@ dependencies {
 	// springboot стартеры
 	implementation 'org.springframework.boot:spring-boot-starter-web' // веб технологии
 	implementation 'org.springframework.boot:spring-boot-starter-security' // безопасность
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server' // все классы для работы с OAuth2
 
 
 	// lombok

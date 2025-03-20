@@ -9,12 +9,12 @@ import ru.javabegin.oauth2.backend.dto.UserData;
 @RequestMapping("/admin") // базовый URI
 public class AdminController {
 
-//    // добавление
-//    @PostMapping("/data")
-//    public ResponseEntity<DataResult> user(@RequestBody UserData userData) {
-//        System.out.println("email: " + userData.getEmail());
-//        return ResponseEntity.ok(new DataResult("admin data"));
-//    }
+    // добавление
+    @PostMapping("/data")
+    public ResponseEntity<DataResult> user(@RequestBody UserData userData) {
+        System.out.println("email: " + userData.getEmail());
+        return ResponseEntity.ok(new DataResult("admin data"));
+    }
 
 
 

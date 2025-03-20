@@ -5,22 +5,25 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ru.javabegin.oauth2.backend.exception.OAuth2ExceptionHandler;
+import ru.javabegin.oauth2.backend.utils.KCRoleConverter;
 
 import java.util.Arrays;
 
-
 @Configuration // данный класс будет считан как конфиг для spring контейнера
 @EnableWebSecurity // включает механизм защиты адресов, которые настраиваются в SecurityFilterChain
+@EnableGlobalMethodSecurity(prePostEnabled = true) // включение механизма для защиты методов по ролям
 
 // исключить авто конфигурация для подключения к БД
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
@@ -35,19 +38,39 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+        // конвертер для настройки spring security
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        // подключаем конвертер ролей
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KCRoleConverter());
+
 
         // все сетевые настройки
         http.authorizeRequests()
-                .anyRequest().permitAll() // разрешаем все запросы, не требуем токенов и пр.
+                .antMatchers("/admin/*").hasRole("admin") // CRUD для работы с пользователями
+                .antMatchers("/user/*").hasRole("user") // действия самого пользователям (регистрация и пр.)
+                .anyRequest().authenticated() // остальной API будет доступен только аутентифицированным пользователям
                 .and()
 
-                .csrf().disable() // отключаем встроенную защиту от CSRF атак
-                .cors();// разрешает выполнять OPTIONS запросы от клиента (preflight запросы) без авторизации
+                .csrf().disable() // отключаем встроенную защиту от CSRF атак, т.к. используем свою, из OAUTH2
+                .cors()// разрешает выполнять OPTIONS запросы от клиента (preflight запросы) без авторизации
 
                 // добавляем новые настройки, не связанные с предыдущими
 
+                .and().oauth2ResourceServer() // включаем защиту OAuth2 для данного backend
+                .jwt()
+
+                .jwtAuthenticationConverter(jwtAuthenticationConverter) // добавляем конвертер ролей из JWT в Authority (Role)
+
+                .and()
+
+                // важно добавлять этот класс после jwt (не раньше), чтобы он применился именно к библиотеке oauth2
+                .authenticationEntryPoint(new OAuth2ExceptionHandler());
+
+
         http.requiresChannel().anyRequest().requiresSecure(); // обязательное исп. HTTPS для всех запросах
 
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         return http.build();
     }

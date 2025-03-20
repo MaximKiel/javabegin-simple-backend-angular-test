@@ -11,7 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DataResult {
 
-    private Integer followers;
-    private Integer following;
+    private String data;
 
 }
