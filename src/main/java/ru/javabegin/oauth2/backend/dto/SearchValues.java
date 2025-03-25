@@ -9,8 +9,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class UserData {
-
-    private String email;
-
+public class SearchValues {
+    private String searchText;
+    // полей для поиска может быть много - зависит от задачи
 }

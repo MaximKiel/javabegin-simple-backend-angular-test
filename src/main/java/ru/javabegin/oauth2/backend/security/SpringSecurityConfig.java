@@ -33,7 +33,6 @@ public class SpringSecurityConfig {
     @Value("${client.url}")
     private String clientURL; // клиентский URL
 
-
     // создается спец. бин, который отвечает за настройки запросов по http (метод вызывается автоматически) Spring контейнером
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -57,7 +56,7 @@ public class SpringSecurityConfig {
                 // добавляем новые настройки, не связанные с предыдущими
 
                 .and().oauth2ResourceServer() // включаем защиту OAuth2 для данного backend
-                .jwt()
+                .jwt() // формат токенов для oauth2
 
                 .jwtAuthenticationConverter(jwtAuthenticationConverter) // добавляем конвертер ролей из JWT в Authority (Role)
 

@@ -43,6 +43,4 @@ public class KCRoleConverter implements Converter<Jwt, Collection<GrantedAuthori
 
         return returnValue;
     }
-
 }
-
